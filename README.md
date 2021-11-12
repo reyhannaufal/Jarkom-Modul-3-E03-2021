@@ -119,8 +119,12 @@ subnet 192.201.3.0 netmask 255.255.255.0 {
 
 6. Luffy dan Zoro berencana menjadikan Skypie sebagai server untuk jual beli kapal yang dimilikinya dengan alamat IP yang tetap dengan IP [prefix IP].3.69
 
+Untuk menjadikan skypie sebagai fixed ip, pertama-tama pastikan ip `dhcp.conf` sudah benar. Setelah itu masukan kode dibawah, hardware ethernet didapatkan dengan melihat outut dari
 ```
-
+ip a
+```
+Masuka pada
+```
 host Skypie {
     hardware ethernet d2:2c:c8:91:59:81;
     fixed-address 192.201.3.69;
@@ -130,42 +134,182 @@ host Skypie {
 
 7.  Loguetown digunakan sebagai client Proxy agar transaksi jual beli dapat terjamin keamanannya, juga untuk mencegah kebocoran data transaksi.
 
+Jika ingin membuat logutown sebagai client proxy maka pertama
+
+Untuk menambahkan proxy pada client `loguetown` lakukanlah command dibawah
+
 ```
-base
+export http_proxy='jualbelikapal.e03.com:5000'
 ```
 
 8. Pada Loguetown, proxy harus bisa diakses dengan nama jualbelikapal.yyy.com dengan port yang digunakan adalah 5000
 
+Buatlah sebuah dns server dengan `jualbelikapal.e03.com` dengan config sebagai berikut
 ```
-base
+zone "jualbelikapal.e03.com" {
+        type master;
+        file "/etc/bind/jarkom/jualbelikapal.e03.com";
+};
+```
+
+Lalu pada config `/etc/bind/jarkom/jualbelikapal.e03.com` aturlah config seperti yang ada dibawah dan arahkan ke pada server Water7 sebagi server proxy
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     jualbelikapal.e03.com. root.jualbelikapal.e03.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      jualbelikapal.e03.com.
+@       IN      A       192.201.2.3
+```
+
+Pada sisi server proxy tambahkan config dibawah. http_port merupakan port yang akan di set pada sisi client
+```
+http_port 5000
+visible_hostname Water7
+```
+
+
+Untuk menambahkan proxy pada client `loguetown` lakukanlah command dibawah
+
+```
+export http_proxy='jualbelikapal.e03.com:5000'
 ```
 
 9. Agar transaksi jual beli lebih aman dan pengguna website ada dua orang, proxy dipasang autentikasi user proxy dengan enkripsi MD5 dengan dua username, yaitu luffybelikapalyyy dengan password luffy_yyy dan zorobelikapalyyy dengan password zoro_yyy
 
+Jika ingin memasukan password untuk autentikasi maka lakukanlah command dibawah, selanjutkan akan terdapat prompt memasukan nilai password.
+
 ```
-base
+htpasswd -c -m /etc/squid/passwd zorobelikapale03
 ```
+
+Pada `squid.conf` tambahkan config dibawah
+
+```
+auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
+auth_param basic children 5
+auth_param basic realm Proxy
+auth_param basic credentialsttl 2 hours
+auth_param basic casesensitive on
+acl USERS proxy_auth REQUIRED
+http_access allow USERS
+```
+
+![image](https://user-images.githubusercontent.com/59334824/141435249-e0ffae63-5510-4b1b-8afd-2cdc0d1fb962.png)
+
 
 10. Transaksi jual beli tidak dilakukan setiap hari, oleh karena itu akses internet dibatasi hanya dapat diakses setiap hari Senin-Kamis pukul 07.00-11.00 dan setiap hari Selasa-Jum’at pukul 17.00-03.00 keesokan harinya (sampai Sabtu pukul 03.00) (10).
 
 ```
-base
+acl SATU time MTWH 07:00-11:00
+acl DUA  time TWHF 17:00-23:59
+acl TIGA time WHFA 00:00-03:00
 ```
 
 11. Agar transaksi bisa lebih fokus berjalan, maka dilakukan redirect website agar mudah mengingat website transaksi jual beli kapal. Setiap mengakses google.com, akan diredirect menuju super.franky.yyy.com dengan website yang sama pada soal shift modul 2. Web server super.franky.yyy.com berada pada node Skypie
 
 ```
-base
+zone "super.franky.e03.com" {
+        type master;
+        file "/etc/bind/jarkom/super.franky.e03.com";
+};
 ```
+
+```
+
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     super.franky.e03.com. root.super.franky.e03.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      super.franky.e03.com.
+@       IN      A       192.201.3.69
+www     IN      CNAME   super.franky.e03.com.
+
+```
+
+```
+apt-get install php -y
+apt-get install libapache2-mod-php7.0 -y
+
+git clone https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom.git
+
+apt-get install unzip
+mv super.franky.zip /var/www/
+
+unzip /var/www/super.franky.zip
+
+mv /var/www/super.franky /var/www/super.franky.e03.com
+```
+
+```
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/super.franky.e03.com
+        #Redirect / http://www.super.franky.e03.com
+
+        ServerName super.franky.e03.com
+        ServerAlias www.super.franky.e03.com
+
+        <Directory /var/www/super.franky.e03.com>
+                Options +Indexes
+                AllowOverride All
+        </Directory>
+
+        <Directory /var/www/super.franky.e03.com/public>
+                Options +Indexes
+        </Directory>
+        
+         Alias "/js" "/var/www/super.franky.e03.com/public/js"
+</VirtualHost>
+
+```
+
+
 
 12. Saatnya berlayar! Luffy dan Zoro akhirnya memutuskan untuk berlayar untuk mencari harta karun di super.franky.yyy.com. Tugas pencarian dibagi menjadi dua misi, Luffy bertugas untuk mendapatkan gambar (.png, .jpg), sedangkan Zoro mendapatkan sisanya. Karena Luffy orangnya sangat teliti untuk mencari harta karun, ketika ia berhasil mendapatkan gambar, ia mendapatkan gambar dan melihatnya dengan kecepatan 10 kbps
 
 ```
-base
+acl download url_regex -i ftp \.jpg$ \.png$
+
+delay_pools 2
+
+delay_class 1 1
+delay_parameters 1 -1/-1
+delay_access 1 deny all
+
+delay_class 2 1
+delay_access 2 allow download
+delay_access 2 deny all
+delay_parameters 2 1250/1250
+
 ```
+
+![image](https://user-images.githubusercontent.com/59334824/141442239-c82ad962-8dda-4af8-854b-fcb93d139353.png)
+
 
 13. Sedangkan, Zoro yang sangat bersemangat untuk mencari harta karun, sehingga kecepatan kapal Zoro tidak dibatasi ketika sudah mendapatkan harta yang diinginkannya
 
-```
-base
-```
+![image](https://user-images.githubusercontent.com/59334824/141442297-cdc4fd25-f348-45d2-90c1-0b50e186f571.png)
