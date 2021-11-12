@@ -1,4 +1,4 @@
-# Jarkom-Modul-3-E03-2021
+# Jarkom Modul 3 E03 2021
 
 Daftar Kelompok:
 
@@ -6,9 +6,12 @@ Daftar Kelompok:
 2. Vicky Thirdian - 05111940000211
 3. Fiodhy Ardito Narawangsa - 05111940000218
 
+---
+### Buatlah topologi sebagai berikut. Dengan penjelasan bahwa `eth1` dan `eth3` merupakan server client sedangkan `eth2` merupakan server.
+![image](https://user-images.githubusercontent.com/59334824/141429556-461d16e3-cb19-4477-b707-2118657ebaf6.png)
+
 ## Soal dan Pembahasan
 
-![image](https://user-images.githubusercontent.com/59334824/141429556-461d16e3-cb19-4477-b707-2118657ebaf6.png)
 
 1. Semua client yang ada HARUS menggunakan konfigurasi IP dari DHCP Server.
 
@@ -120,10 +123,12 @@ subnet 192.201.3.0 netmask 255.255.255.0 {
 6. Luffy dan Zoro berencana menjadikan Skypie sebagai server untuk jual beli kapal yang dimilikinya dengan alamat IP yang tetap dengan IP [prefix IP].3.69
 
 Untuk menjadikan skypie sebagai fixed ip, pertama-tama pastikan ip `dhcp.conf` sudah benar. Setelah itu masukan kode dibawah, hardware ethernet didapatkan dengan melihat outut dari
+
 ```
 ip a
+
 ```
-Masuka pada
+Masukan pada config `dhcp` dan set fixed-address `fixed-address 192.201.3.69`
 ```
 host Skypie {
     hardware ethernet d2:2c:c8:91:59:81;
@@ -136,7 +141,7 @@ host Skypie {
 
 Jika ingin membuat logutown sebagai client proxy maka pertama
 
-Untuk menambahkan proxy pada client `loguetown` lakukanlah command dibawah
+Untuk menambahkan proxy pada client `loguetown` lakukanlah command dibawah. Maka akan terset proxy pada client tersebut
 
 ```
 export http_proxy='jualbelikapal.e03.com:5000'
@@ -144,7 +149,23 @@ export http_proxy='jualbelikapal.e03.com:5000'
 
 8. Pada Loguetown, proxy harus bisa diakses dengan nama jualbelikapal.yyy.com dengan port yang digunakan adalah 5000
 
+Script untuk webserver
+```
+apt-get install php -y
+apt-get install libapache2-mod-php7.0 -y
+
+git clone https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom.git
+
+apt-get install unzip
+mv super.franky.zip /var/www/
+
+unzip /var/www/super.franky.zip
+
+mv /var/www/super.franky /var/www/super.franky.e03.com
+```
+
 Buatlah sebuah dns server dengan `jualbelikapal.e03.com` dengan config sebagai berikut
+
 ```
 zone "jualbelikapal.e03.com" {
         type master;
@@ -173,6 +194,8 @@ Pada sisi server proxy tambahkan config dibawah. http_port merupakan port yang a
 ```
 http_port 5000
 visible_hostname Water7
+
+dns_nameserver 192.201.2.4 //server dns
 ```
 
 
@@ -206,6 +229,10 @@ http_access allow USERS
 
 
 10. Transaksi jual beli tidak dilakukan setiap hari, oleh karena itu akses internet dibatasi hanya dapat diakses setiap hari Senin-Kamis pukul 07.00-11.00 dan setiap hari Selasa-Jum’at pukul 17.00-03.00 keesokan harinya (sampai Sabtu pukul 03.00) (10).
+
+- Config pertama adalah untuk menghandle case hari senin-kamis pukuk 07:00-11:00 (case pagi)
+- Config kedua adalah untuk menghandle case dari hari selasa-jumat pukul 17:00-23:59 (case sore-malan)
+- Config ketiga adalah untuk menghandle case dari rabu-sabtu pukul 00:00-03:00 (case malam-pagi)
 
 ```
 acl SATU time MTWH 07:00-11:00
@@ -242,30 +269,7 @@ www     IN      CNAME   super.franky.e03.com.
 ```
 
 ```
-apt-get install php -y
-apt-get install libapache2-mod-php7.0 -y
-
-git clone https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom.git
-
-apt-get install unzip
-mv super.franky.zip /var/www/
-
-unzip /var/www/super.franky.zip
-
-mv /var/www/super.franky /var/www/super.franky.e03.com
-```
-
-```
 <VirtualHost *:80>
-        # The ServerName directive sets the request scheme, hostname and port that
-        # the server uses to identify itself. This is used when creating
-        # redirection URLs. In the context of virtual hosts, the ServerName
-        # specifies what hostname must appear in the request's Host: header to
-        # match this virtual host. For the default virtual host (this file) this
-        # value is not decisive as it is used as a last resort host regardless.
-        # However, you must set it for any further virtual host explicitly.
-        #ServerName www.example.com
-
         ServerAdmin webmaster@localhost
         DocumentRoot /var/www/super.franky.e03.com
         #Redirect / http://www.super.franky.e03.com
@@ -287,9 +291,22 @@ mv /var/www/super.franky /var/www/super.franky.e03.com
 
 ```
 
+Lalu pada setting server squi lakukanlah config seperti dibawah
+```
+acl awas url_regex "/etc/squid/ban.acl"
+deny info http://super.franky.e03.com awas
+http_access deny awas
+```
+
+lalu pada file `etc/squid/ban.acl` isi dengan `google.com`
+
 
 
 12. Saatnya berlayar! Luffy dan Zoro akhirnya memutuskan untuk berlayar untuk mencari harta karun di super.franky.yyy.com. Tugas pencarian dibagi menjadi dua misi, Luffy bertugas untuk mendapatkan gambar (.png, .jpg), sedangkan Zoro mendapatkan sisanya. Karena Luffy orangnya sangat teliti untuk mencari harta karun, ketika ia berhasil mendapatkan gambar, ia mendapatkan gambar dan melihatnya dengan kecepatan 10 kbps
+
+Masukan config dibawah pada `squid.conf`. Lakukan sorting file untuk `jpg` dan `png`, lalu buatlah 2 pools untuk membedakan 2 tipe pencarian internet
+- satu untuk kecepatan normal
+- dua untuk kecepatan internet yang dibatasi 10kbps
 
 ```
 acl download url_regex -i ftp \.jpg$ \.png$
@@ -303,7 +320,7 @@ delay_access 1 deny all
 delay_class 2 1
 delay_access 2 allow download
 delay_access 2 deny all
-delay_parameters 2 1250/1250
+delay_parameters 2 10000/10000
 
 ```
 
@@ -311,5 +328,7 @@ delay_parameters 2 1250/1250
 
 
 13. Sedangkan, Zoro yang sangat bersemangat untuk mencari harta karun, sehingga kecepatan kapal Zoro tidak dibatasi ketika sudah mendapatkan harta yang diinginkannya
+
+Pada dasarnya by default untuk case pada soal ini sudah terpenuhi. Ketika berselancar ataupun download file selain bertipe `png` dan `jpg` maka speed internet tidak akan dilimit.
 
 ![image](https://user-images.githubusercontent.com/59334824/141442297-cdc4fd25-f348-45d2-90c1-0b50e186f571.png)
