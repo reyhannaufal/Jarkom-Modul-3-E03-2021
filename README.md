@@ -8,13 +8,20 @@ Daftar Kelompok:
 
 ## Soal dan Pembahasan
 
+![image](https://user-images.githubusercontent.com/59334824/141429556-461d16e3-cb19-4477-b707-2118657ebaf6.png)
+
 1. Semua client yang ada HARUS menggunakan konfigurasi IP dari DHCP Server.
+
+![image](https://user-images.githubusercontent.com/59334824/141429489-59f055cb-c5e7-4867-a13c-9feef28c4bfe.png)
 
 ```
 base
 ```
 
 2. Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.20 - [prefix IP].1.99 dan [prefix IP].1.150 - [prefix IP].1.169
+
+![image](https://user-images.githubusercontent.com/59334824/141429711-ccb0e48a-19a7-459d-9a42-e562750168fc.png)
+![image](https://user-images.githubusercontent.com/59334824/141429920-58d908fc-d753-4f80-969b-84b9cb1a1233.png)
 
 ```
 base
@@ -23,25 +30,102 @@ base
 3. Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.20 - [prefix IP].1.99 dan [prefix IP].1.150 - [prefix IP].1.169
 
 ```
-base
+subnet 192.201.2.0 netmask 255.255.255.248 {
+    option routers 192.201.2.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+}
+
+
+subnet 192.201.1.0 netmask 255.255.255.0 {
+    range 192.201.1.20 192.201.1.99;
+    range 192.201.1.150 192.201.1.169;
+    option routers 192.201.1.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 360;
+    max-lease-time 7200;
+}
+
+subnet 192.201.3.0 netmask 255.255.255.0 {
+    range 192.201.3.30 192.201.3.50;
+    option routers 192.201.3.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 720;
+    max-lease-time 7200;
+}
 ```
 
 4. Client mendapatkan DNS dari EniesLobby dan client dapat terhubung dengan internet melalui DNS tersebut.
 
 ```
-base
+subnet 192.201.2.0 netmask 255.255.255.248 {
+    option routers 192.201.2.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+}
+
+
+subnet 192.201.1.0 netmask 255.255.255.0 {
+    range 192.201.1.20 192.201.1.99;
+    range 192.201.1.150 192.201.1.169;
+    option routers 192.201.1.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 360;
+    max-lease-time 7200;
+}
+
+subnet 192.201.3.0 netmask 255.255.255.0 {
+    range 192.201.3.30 192.201.3.50;
+    option routers 192.201.3.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 720;
+    max-lease-time 7200;
+}
 ```
 
 5. Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch1 selama 6 menit sedangkan pada client yang melalui Switch3 selama 12 menit. Dengan waktu maksimal yang dialokasikan untuk peminjaman alamat IP selama 120 menit.
 
 ```
-base
+subnet 192.201.2.0 netmask 255.255.255.248 {
+    option routers 192.201.2.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+}
+
+
+subnet 192.201.1.0 netmask 255.255.255.0 {
+    range 192.201.1.20 192.201.1.99;
+    range 192.201.1.150 192.201.1.169;
+    option routers 192.201.1.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 360;
+    max-lease-time 7200;
+}
+
+subnet 192.201.3.0 netmask 255.255.255.0 {
+    range 192.201.3.30 192.201.3.50;
+    option routers 192.201.3.1;
+    option broadcast-address 192.201.0.255;
+    option domain-name-servers 192.201.2.4, 192.168.122.1;
+    default-lease-time 720;
+    max-lease-time 7200;
+}
 ```
 
 6. Luffy dan Zoro berencana menjadikan Skypie sebagai server untuk jual beli kapal yang dimilikinya dengan alamat IP yang tetap dengan IP [prefix IP].3.69
 
 ```
- base
+
+host Skypie {
+    hardware ethernet d2:2c:c8:91:59:81;
+    fixed-address 192.201.3.69;
+}
+
 ```
 
 7.  Loguetown digunakan sebagai client Proxy agar transaksi jual beli dapat terjamin keamanannya, juga untuk mencegah kebocoran data transaksi.
