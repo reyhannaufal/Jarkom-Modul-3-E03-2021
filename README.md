@@ -314,8 +314,8 @@ Maka otomatis jika mengkases google.com akan redirect pada website `super.frank.
 > 12. Saatnya berlayar! Luffy dan Zoro akhirnya memutuskan untuk berlayar untuk mencari harta karun di super.franky.yyy.com. Tugas pencarian dibagi menjadi dua misi, Luffy bertugas untuk mendapatkan gambar (.png, .jpg), sedangkan Zoro mendapatkan sisanya. Karena Luffy orangnya sangat teliti untuk mencari harta karun, ketika ia berhasil mendapatkan gambar, ia mendapatkan gambar dan melihatnya dengan kecepatan 10 kbps
 
 Masukan config dibawah pada `squid.conf`. Lakukan sorting file untuk `jpg` dan `png`, lalu buatlah 2 pools untuk membedakan 2 tipe pencarian internet
-- satu untuk kecepatan normal
-- dua untuk kecepatan internet yang dibatasi 10kbps
+- satu untuk kecepatan normal.
+- dua untuk kecepatan internet yang dibatasi 10kbps.
 
 ```
 acl download url_regex -i ftp \.jpg$ \.png$
